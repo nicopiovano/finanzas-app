@@ -1,0 +1,375 @@
+import React, { useState } from 'react';
+import { useFinance } from '../../context/FinanceContext';
+import { Plus } from 'lucide-react';
+import { format } from 'date-fns';
+
+export function ComprasCedearsAcciones() {
+  const { cdrTransactions, accionTransactions, addCDRTransaction, addAccionTransaction } = useFinance();
+  const [tipo, setTipo] = useState<'cedear' | 'accion'>('cedear');
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    ticker: '',
+    cantidad: '',
+    precio: '',
+    fecha: format(new Date(), 'yyyy-MM-dd'),
+  });
+
+  const comprasCDRs = cdrTransactions.filter(t => t.tipo === 'compra');
+  const comprasAcciones = accionTransactions.filter(t => t.tipo === 'compra');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (tipo === 'cedear') {
+      addCDRTransaction({
+        ticker: formData.ticker.toUpperCase(),
+        cantidad: parseFloat(formData.cantidad),
+        precio: parseFloat(formData.precio),
+        fecha: new Date(formData.fecha),
+        tipo: 'compra',
+      });
+    } else {
+      addAccionTransaction({
+        ticker: formData.ticker.toUpperCase(),
+        cantidad: parseFloat(formData.cantidad),
+        precio: parseFloat(formData.precio),
+        fecha: new Date(formData.fecha),
+        tipo: 'compra',
+      });
+    }
+    setFormData({
+      ticker: '',
+      cantidad: '',
+      precio: '',
+      fecha: format(new Date(), 'yyyy-MM-dd'),
+    });
+    setShowForm(false);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Selector de tipo */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setTipo('cedear')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            tipo === 'cedear'
+              ? 'bg-blue-600 text-white'
+              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+          }`}
+        >
+          Cedears
+        </button>
+        <button
+          onClick={() => setTipo('accion')}
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            tipo === 'accion'
+              ? 'bg-purple-600 text-white'
+              : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
+          }`}
+        >
+          Acciones
+        </button>
+      </div>
+
+      {/* Sección de Cedears */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Compras de Cedears
+          </h2>
+          <button
+            onClick={() => {
+              setTipo('cedear');
+              setShowForm(!showForm);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Nueva Compra
+          </button>
+        </div>
+
+        {showForm && tipo === 'cedear' && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Registrar Compra de Cedear</h3>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Ticker
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.ticker}
+                  onChange={(e) => setFormData({ ...formData, ticker: e.target.value })}
+                  placeholder="AAPL"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Cantidad
+                </label>
+                <input
+                  type="number"
+                  required
+                  step="0.01"
+                  value={formData.cantidad}
+                  onChange={(e) => setFormData({ ...formData, cantidad: e.target.value })}
+                  placeholder="10"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Precio (USD)
+                </label>
+                <input
+                  type="number"
+                  required
+                  step="0.01"
+                  value={formData.precio}
+                  onChange={(e) => setFormData({ ...formData, precio: e.target.value })}
+                  placeholder="150.00"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Fecha
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={formData.fecha}
+                  onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div className="md:col-span-4 flex gap-2">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Guardar Compra
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">
+                    Fecha
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">
+                    Ticker
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">
+                    Cantidad
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">
+                    Precio USD
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">
+                    Total USD
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {comprasCDRs.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                      No hay compras de cedears registradas
+                    </td>
+                  </tr>
+                ) : (
+                  comprasCDRs.map((compra) => (
+                    <tr key={compra.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                        {format(new Date(compra.fecha), 'dd/MM/yyyy')}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                        {compra.ticker}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-gray-900 dark:text-white">
+                        {compra.cantidad.toLocaleString('es-AR', { maximumFractionDigits: 2 })}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-gray-900 dark:text-white">
+                        ${compra.precio.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right font-medium text-gray-900 dark:text-white">
+                        ${(compra.cantidad * compra.precio).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      {/* Sección de Acciones */}
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Compras de Acciones
+          </h2>
+          <button
+            onClick={() => {
+              setTipo('accion');
+              setShowForm(!showForm);
+            }}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Nueva Compra
+          </button>
+        </div>
+
+        {showForm && tipo === 'accion' && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+            <h3 className="font-semibold text-gray-900 dark:text-white mb-4">Registrar Compra de Acción</h3>
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Ticker
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.ticker}
+                  onChange={(e) => setFormData({ ...formData, ticker: e.target.value })}
+                  placeholder="YPF"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Cantidad
+                </label>
+                <input
+                  type="number"
+                  required
+                  step="1"
+                  value={formData.cantidad}
+                  onChange={(e) => setFormData({ ...formData, cantidad: e.target.value })}
+                  placeholder="100"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Precio (ARS)
+                </label>
+                <input
+                  type="number"
+                  required
+                  step="0.01"
+                  value={formData.precio}
+                  onChange={(e) => setFormData({ ...formData, precio: e.target.value })}
+                  placeholder="1250.00"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Fecha
+                </label>
+                <input
+                  type="date"
+                  required
+                  value={formData.fecha}
+                  onChange={(e) => setFormData({ ...formData, fecha: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div className="md:col-span-4 flex gap-2">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                >
+                  Guardar Compra
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-gray-700">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">
+                    Fecha
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">
+                    Ticker
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">
+                    Cantidad
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">
+                    Precio ARS
+                  </th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">
+                    Total ARS
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {comprasAcciones.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500 dark:text-gray-400">
+                      No hay compras de acciones registradas
+                    </td>
+                  </tr>
+                ) : (
+                  comprasAcciones.map((compra) => (
+                    <tr key={compra.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                      <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                        {format(new Date(compra.fecha), 'dd/MM/yyyy')}
+                      </td>
+                      <td className="px-4 py-3 text-sm font-medium text-gray-900 dark:text-white">
+                        {compra.ticker}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-gray-900 dark:text-white">
+                        {compra.cantidad.toLocaleString('es-AR')}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right text-gray-900 dark:text-white">
+                        ${compra.precio.toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right font-medium text-gray-900 dark:text-white">
+                        ${(compra.cantidad * compra.precio).toLocaleString('es-AR', { minimumFractionDigits: 2 })}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
