@@ -1,12 +1,16 @@
 import axios from 'axios'
 
 const ENV_API_URL = import.meta.env?.VITE_API_URL as string | undefined
+const isDev = import.meta.env.DEV
 
-if (!ENV_API_URL) {
+// En desarrollo usar fallback si no está definida; en producción es obligatoria
+export const API_BASE_URL =
+  ENV_API_URL?.trim() ||
+  (isDev ? 'http://localhost:8002' : '')
+
+if (!API_BASE_URL) {
   throw new Error('VITE_API_URL no está definida en el entorno de Vite')
 }
-
-export const API_BASE_URL = ENV_API_URL
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
