@@ -1,7 +1,12 @@
 import axios from 'axios'
 
-export const API_BASE_URL =
-  (import.meta.env?.VITE_API_URL as string) || 'http://localhost:8001'
+const ENV_API_URL = import.meta.env?.VITE_API_URL as string | undefined
+
+if (!ENV_API_URL) {
+  throw new Error('VITE_API_URL no está definida en el entorno de Vite')
+}
+
+export const API_BASE_URL = ENV_API_URL
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

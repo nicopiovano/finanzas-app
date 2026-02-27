@@ -1,12 +1,11 @@
 import React from 'react';
 import { useFinance } from '../../context/FinanceContext';
-import { calcularPromedioDolarCompra, calcularTotalDolaresComprados, getCurrentPrices, formatCurrency } from '../../utils/calculations';
+import { calcularPromedioDolarCompra, calcularTotalDolaresComprados, formatCurrency } from '../../utils/calculations';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 
 export function HistorialDolar() {
-  const { dolarCompras, currency } = useFinance();
-  const precios = getCurrentPrices();
+  const { dolarCompras, currency, precios } = useFinance();
 
   const promedioCompra = calcularPromedioDolarCompra(dolarCompras);
   const totalDolares = calcularTotalDolaresComprados(dolarCompras);

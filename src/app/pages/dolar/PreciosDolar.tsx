@@ -1,9 +1,9 @@
 import React from 'react';
-import { getCurrentPrices } from '../../utils/calculations';
+import { useFinance } from '../../context/FinanceContext';
 import { TrendingUp, TrendingDown, Building2, Briefcase, Users } from 'lucide-react';
 
 export function PreciosDolar() {
-  const precios = getCurrentPrices();
+  const { precios } = useFinance();
 
   const cotizaciones = [
     {

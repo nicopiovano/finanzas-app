@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
+import { api } from '../lib/api';
+import { useAuthStore } from '../stores/auth';
 
 export type Currency = 'ARS' | 'USD';
 
@@ -35,70 +37,133 @@ export interface Ingreso {
   nota: string;
 }
 
+export interface Precios {
+  cdrs: Record<string, number>;
+  acciones: Record<string, number>;
+  dolar: { oficial: number; mep: number; blue: number };
+}
+
+const DEFAULT_PRECIOS: Precios = {
+  cdrs: {},
+  acciones: {},
+  dolar: { oficial: 0, mep: 0, blue: 0 },
+};
+
 interface FinanceContextType {
   currency: Currency;
   setCurrency: (currency: Currency) => void;
   darkMode: boolean;
   setDarkMode: (darkMode: boolean) => void;
-  
+
   // CDRs
   cdrTransactions: CDRTransaction[];
-  addCDRTransaction: (transaction: Omit<CDRTransaction, 'id'>) => void;
-  
+  addCDRTransaction: (transaction: Omit<CDRTransaction, 'id'>) => Promise<void>;
+
   // Acciones
   accionTransactions: AccionTransaction[];
-  addAccionTransaction: (transaction: Omit<AccionTransaction, 'id'>) => void;
-  
+  addAccionTransaction: (transaction: Omit<AccionTransaction, 'id'>) => Promise<void>;
+
   // Dólar
   dolarCompras: DolarCompra[];
-  addDolarCompra: (compra: Omit<DolarCompra, 'id'>) => void;
-  
+  addDolarCompra: (compra: Omit<DolarCompra, 'id'>) => Promise<void>;
+
   // Ingresos
   ingresos: Ingreso[];
-  addIngreso: (ingreso: Omit<Ingreso, 'id'>) => void;
+  addIngreso: (ingreso: Omit<Ingreso, 'id'>) => Promise<void>;
+
+  // Precios
+  precios: Precios;
+
+  // Loading
+  loading: boolean;
 }
 
 const FinanceContext = createContext<FinanceContextType | undefined>(undefined);
 
-// Mock data
-const mockCDRTransactions: CDRTransaction[] = [
-  { id: '1', ticker: 'AAPL', cantidad: 10, precio: 150.5, fecha: new Date('2026-02-01'), tipo: 'compra' },
-  { id: '2', ticker: 'GOOGL', cantidad: 5, precio: 2800, fecha: new Date('2026-02-05'), tipo: 'compra' },
-  { id: '3', ticker: 'MSFT', cantidad: 8, precio: 380, fecha: new Date('2026-02-10'), tipo: 'compra' },
-  { id: '4', ticker: 'AAPL', cantidad: 3, precio: 155, fecha: new Date('2026-02-15'), tipo: 'venta' },
-];
+function parseTransaction(raw: Record<string, unknown>): CDRTransaction | AccionTransaction {
+  return {
+    id: String(raw.id),
+    ticker: raw.ticker as string,
+    cantidad: Number(raw.cantidad),
+    precio: Number(raw.precio),
+    fecha: new Date(raw.fecha as string),
+    tipo: raw.tipo as 'compra' | 'venta',
+  };
+}
 
-const mockAccionTransactions: AccionTransaction[] = [
-  { id: '1', ticker: 'YPF', cantidad: 100, precio: 1250, fecha: new Date('2026-02-01'), tipo: 'compra' },
-  { id: '2', ticker: 'GGAL', cantidad: 50, precio: 3400, fecha: new Date('2026-02-08'), tipo: 'compra' },
-  { id: '3', ticker: 'PAM', cantidad: 75, precio: 890, fecha: new Date('2026-02-12'), tipo: 'compra' },
-];
+function parseDolarCompra(raw: Record<string, unknown>): DolarCompra {
+  return {
+    id: String(raw.id),
+    cantidad: Number(raw.cantidad),
+    precio: Number(raw.precio),
+    fecha: new Date(raw.fecha as string),
+  };
+}
 
-const mockDolarCompras: DolarCompra[] = [
-  { id: '1', cantidad: 1000, precio: 985, fecha: new Date('2026-01-15') },
-  { id: '2', cantidad: 500, precio: 1020, fecha: new Date('2026-02-01') },
-  { id: '3', cantidad: 800, precio: 1035, fecha: new Date('2026-02-10') },
-];
+function parseIngreso(raw: Record<string, unknown>): Ingreso {
+  return {
+    id: String(raw.id),
+    fecha: new Date(raw.fecha as string),
+    monto: Number(raw.monto),
+    origen: raw.origen as 'banco' | 'mercadopago',
+    nota: (raw.nota as string) || '',
+  };
+}
 
-const mockIngresos: Ingreso[] = [
-  { id: '1', fecha: new Date('2026-02-01'), monto: 500000, origen: 'banco', nota: 'Salario enero' },
-  { id: '2', fecha: new Date('2026-02-05'), monto: 85000, origen: 'mercadopago', nota: 'Freelance proyecto web' },
-  { id: '3', fecha: new Date('2026-02-10'), monto: 120000, origen: 'banco', nota: 'Bono semestral' },
-  { id: '4', fecha: new Date('2026-02-15'), monto: 45000, origen: 'mercadopago', nota: 'Venta usados' },
-];
+function formatDate(d: Date): string {
+  return d.toISOString().split('T')[0];
+}
 
 export function FinanceProvider({ children }: { children: ReactNode }) {
   const [currency, setCurrency] = useState<Currency>('ARS');
   const [darkMode, setDarkMode] = useState(() => {
-    // Leer del localStorage o usar preferencia del sistema
     const saved = localStorage.getItem('darkMode');
     if (saved !== null) return saved === 'true';
     return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
-  const [cdrTransactions, setCdrTransactions] = useState<CDRTransaction[]>(mockCDRTransactions);
-  const [accionTransactions, setAccionTransactions] = useState<AccionTransaction[]>(mockAccionTransactions);
-  const [dolarCompras, setDolarCompras] = useState<DolarCompra[]>(mockDolarCompras);
-  const [ingresos, setIngresos] = useState<Ingreso[]>(mockIngresos);
+  const [cdrTransactions, setCdrTransactions] = useState<CDRTransaction[]>([]);
+  const [accionTransactions, setAccionTransactions] = useState<AccionTransaction[]>([]);
+  const [dolarCompras, setDolarCompras] = useState<DolarCompra[]>([]);
+  const [ingresos, setIngresos] = useState<Ingreso[]>([]);
+  const [precios, setPrecios] = useState<Precios>(DEFAULT_PRECIOS);
+  const [loading, setLoading] = useState(true);
+  const userId = useAuthStore((s) => s.user?.id);
+
+  // Fetch all data from API when user is logged in
+  useEffect(() => {
+    if (userId == null) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
+    async function fetchAll() {
+      try {
+        const [cedears, acciones, dolares, ingresosRes, preciosRes] = await Promise.all([
+          api.get('/api/transactions', { params: { mercado: 'cedear' } }),
+          api.get('/api/transactions', { params: { mercado: 'accion' } }),
+          api.get('/api/dolar-compras'),
+          api.get('/api/ingresos'),
+          api.get('/api/precios'),
+        ]);
+        if (cancelled) return;
+
+        const toList = (x: unknown): Record<string, unknown>[] =>
+          Array.isArray(x) ? x : [];
+
+        setCdrTransactions(toList(cedears.data?.data).map(parseTransaction));
+        setAccionTransactions(toList(acciones.data?.data).map(parseTransaction));
+        setDolarCompras(toList(dolares.data?.data).map(parseDolarCompra));
+        setIngresos(toList(ingresosRes.data?.data).map(parseIngreso));
+        setPrecios((preciosRes.data?.data as Precios) ?? DEFAULT_PRECIOS);
+      } catch (err) {
+        if (!cancelled) console.error('Error fetching finance data:', err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchAll();
+    return () => { cancelled = true; };
+  }, [userId]);
 
   // Aplicar darkmode al elemento HTML
   useEffect(() => {
@@ -111,25 +176,39 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('darkMode', darkMode.toString());
   }, [darkMode]);
 
-  const addCDRTransaction = (transaction: Omit<CDRTransaction, 'id'>) => {
-    const newTransaction = { ...transaction, id: Date.now().toString() };
-    setCdrTransactions([...cdrTransactions, newTransaction]);
-  };
+  const addCDRTransaction = useCallback(async (transaction: Omit<CDRTransaction, 'id'>) => {
+    const res = await api.post('/api/transactions', {
+      ...transaction,
+      fecha: formatDate(transaction.fecha),
+      mercado: 'cedear',
+    });
+    setCdrTransactions((prev) => [...prev, parseTransaction(res.data.data)]);
+  }, []);
 
-  const addAccionTransaction = (transaction: Omit<AccionTransaction, 'id'>) => {
-    const newTransaction = { ...transaction, id: Date.now().toString() };
-    setAccionTransactions([...accionTransactions, newTransaction]);
-  };
+  const addAccionTransaction = useCallback(async (transaction: Omit<AccionTransaction, 'id'>) => {
+    const res = await api.post('/api/transactions', {
+      ...transaction,
+      fecha: formatDate(transaction.fecha),
+      mercado: 'accion',
+    });
+    setAccionTransactions((prev) => [...prev, parseTransaction(res.data.data)]);
+  }, []);
 
-  const addDolarCompra = (compra: Omit<DolarCompra, 'id'>) => {
-    const newCompra = { ...compra, id: Date.now().toString() };
-    setDolarCompras([...dolarCompras, newCompra]);
-  };
+  const addDolarCompra = useCallback(async (compra: Omit<DolarCompra, 'id'>) => {
+    const res = await api.post('/api/dolar-compras', {
+      ...compra,
+      fecha: formatDate(compra.fecha),
+    });
+    setDolarCompras((prev) => [...prev, parseDolarCompra(res.data.data)]);
+  }, []);
 
-  const addIngreso = (ingreso: Omit<Ingreso, 'id'>) => {
-    const newIngreso = { ...ingreso, id: Date.now().toString() };
-    setIngresos([...ingresos, newIngreso]);
-  };
+  const addIngreso = useCallback(async (ingreso: Omit<Ingreso, 'id'>) => {
+    const res = await api.post('/api/ingresos', {
+      ...ingreso,
+      fecha: formatDate(ingreso.fecha),
+    });
+    setIngresos((prev) => [...prev, parseIngreso(res.data.data)]);
+  }, []);
 
   return (
     <FinanceContext.Provider
@@ -146,6 +225,8 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
         addDolarCompra,
         ingresos,
         addIngreso,
+        precios,
+        loading,
       }}
     >
       {children}

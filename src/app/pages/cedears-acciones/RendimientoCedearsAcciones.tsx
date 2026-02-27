@@ -2,7 +2,6 @@ import React from 'react';
 import { useFinance } from '../../context/FinanceContext';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { 
-  getCurrentPrices, 
   calcularTenenciaActual, 
   calcularPromedioPonderado,
   calcularGananciaCDRs,
@@ -11,12 +10,11 @@ import {
 } from '../../utils/calculations';
 
 export function RendimientoCedearsAcciones() {
-  const { cdrTransactions, accionTransactions, currency } = useFinance();
-  const precios = getCurrentPrices();
+  const { cdrTransactions, accionTransactions, currency, precios } = useFinance();
   const tenenciasCDRs = calcularTenenciaActual(cdrTransactions);
   const tenenciasAcciones = calcularTenenciaActual(accionTransactions);
-  const gananciasCDRs = calcularGananciaCDRs(cdrTransactions);
-  const gananciasAcciones = calcularGananciaAcciones(accionTransactions);
+  const gananciasCDRs = calcularGananciaCDRs(cdrTransactions, precios);
+  const gananciasAcciones = calcularGananciaAcciones(accionTransactions, precios);
 
   const tickersCDRs = Array.from(new Set(cdrTransactions.map(t => t.ticker)));
   const tickersAcciones = Array.from(new Set(accionTransactions.map(t => t.ticker)));
@@ -121,7 +119,7 @@ export function RendimientoCedearsAcciones() {
                     const tenencia = tenenciasCDRs.get(ticker) || 0;
                     if (tenencia <= 0) return null;
 
-                    const precioActual = precios.cdrs[ticker as keyof typeof precios.cdrs] || 0;
+                    const precioActual = precios.cdrs[ticker] || 0;
                     const compras = cdrTransactions.filter(t => t.tipo === 'compra' && t.ticker === ticker);
                     const precioPromedio = calcularPromedioPonderado(compras, 'compra');
                     const ganancia = tenencia * (precioActual - precioPromedio);
@@ -247,7 +245,7 @@ export function RendimientoCedearsAcciones() {
                     const tenencia = tenenciasAcciones.get(ticker) || 0;
                     if (tenencia <= 0) return null;
 
-                    const precioActual = precios.acciones[ticker as keyof typeof precios.acciones] || 0;
+                    const precioActual = precios.acciones[ticker] || 0;
                     const compras = accionTransactions.filter(t => t.tipo === 'compra' && t.ticker === ticker);
                     const precioPromedio = calcularPromedioPonderado(compras, 'compra');
                     const ganancia = tenencia * (precioActual - precioPromedio);

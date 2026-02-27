@@ -2,7 +2,6 @@ import React from 'react';
 import { useFinance } from '../../context/FinanceContext';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { 
-  getCurrentPrices, 
   calcularTenenciaActual, 
   calcularPromedioPonderado,
   calcularGananciaCDRs,
@@ -10,10 +9,9 @@ import {
 } from '../../utils/calculations';
 
 export function PreciosCDRs() {
-  const { cdrTransactions, currency } = useFinance();
-  const precios = getCurrentPrices();
+  const { cdrTransactions, currency, precios } = useFinance();
   const tenencias = calcularTenenciaActual(cdrTransactions);
-  const ganancias = calcularGananciaCDRs(cdrTransactions);
+  const ganancias = calcularGananciaCDRs(cdrTransactions, precios);
 
   const tickers = Array.from(new Set(cdrTransactions.map(t => t.ticker)));
 
@@ -93,7 +91,7 @@ export function PreciosCDRs() {
                   const tenencia = tenencias.get(ticker) || 0;
                   if (tenencia <= 0) return null;
 
-                  const precioActual = precios.cdrs[ticker as keyof typeof precios.cdrs] || 0;
+                  const precioActual = precios.cdrs[ticker] || 0;
                   const compras = cdrTransactions.filter(t => t.tipo === 'compra' && t.ticker === ticker);
                   const precioPromedio = calcularPromedioPonderado(compras, 'compra');
                   const ganancia = tenencia * (precioActual - precioPromedio);

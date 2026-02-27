@@ -6,35 +6,33 @@ import {
   formatCurrency, 
   calcularGananciaCDRs, 
   calcularGananciaAcciones,
-  getCurrentPrices,
   calcularTenenciaActual,
   formatPercent
 } from '../utils/calculations';
 import { AreaChart, Area, PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 export function Dashboard() {
-  const { currency, cdrTransactions, accionTransactions, dolarCompras, ingresos } = useFinance();
+  const { currency, cdrTransactions, accionTransactions, dolarCompras, ingresos, precios } = useFinance();
 
   // Cálculos
-  const gananciaCDRs = calcularGananciaCDRs(cdrTransactions);
-  const gananciaAcciones = calcularGananciaAcciones(accionTransactions);
+  const gananciaCDRs = calcularGananciaCDRs(cdrTransactions, precios);
+  const gananciaAcciones = calcularGananciaAcciones(accionTransactions, precios);
   const gananciaTotal = gananciaCDRs.total + gananciaAcciones.total;
   const gananciaDiaria = gananciaTotal * 0.025; // Mock 2.5%
 
   // Patrimonio por tipo
-  const precios = getCurrentPrices();
   const tenenciasCDRs = calcularTenenciaActual(cdrTransactions);
   const tenenciasAcciones = calcularTenenciaActual(accionTransactions);
 
   let valorCDRs = 0;
   tenenciasCDRs.forEach((cantidad, ticker) => {
-    const precio = precios.cdrs[ticker as keyof typeof precios.cdrs] || 0;
+    const precio = precios.cdrs[ticker] || 0;
     valorCDRs += cantidad * precio;
   });
 
   let valorAcciones = 0;
   tenenciasAcciones.forEach((cantidad, ticker) => {
-    const precio = precios.acciones[ticker as keyof typeof precios.acciones] || 0;
+    const precio = precios.acciones[ticker] || 0;
     valorAcciones += cantidad * precio;
   });
 

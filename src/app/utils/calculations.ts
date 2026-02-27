@@ -1,23 +1,6 @@
-import { CDRTransaction, AccionTransaction, DolarCompra } from '../context/FinanceContext';
+import { CDRTransaction, AccionTransaction, DolarCompra, Precios } from '../context/FinanceContext';
 
-// Precios mock actuales (simulación)
-export const getCurrentPrices = () => ({
-  cdrs: {
-    AAPL: 158.5,
-    GOOGL: 2850,
-    MSFT: 385,
-  },
-  acciones: {
-    YPF: 1320,
-    GGAL: 3580,
-    PAM: 910,
-  },
-  dolar: {
-    oficial: 890,
-    mep: 1045,
-    blue: 1050,
-  },
-});
+export type { Precios };
 
 export function calcularPromedioPonderado(
   transactions: (CDRTransaction | AccionTransaction)[],
@@ -47,12 +30,11 @@ export function calcularTenenciaActual(transactions: (CDRTransaction | AccionTra
   return tenencias;
 }
 
-export function calcularGananciaCDRs(transactions: CDRTransaction[]): {
+export function calcularGananciaCDRs(transactions: CDRTransaction[], precios: Precios): {
   realizada: number;
   noRealizada: number;
   total: number;
 } {
-  const precios = getCurrentPrices();
   const tenencias = calcularTenenciaActual(transactions);
   
   // Ganancia realizada (de ventas)
@@ -69,7 +51,7 @@ export function calcularGananciaCDRs(transactions: CDRTransaction[]): {
   let gananciaNoRealizada = 0;
   tenencias.forEach((cantidad, ticker) => {
     if (cantidad > 0) {
-      const precioActual = precios.cdrs[ticker as keyof typeof precios.cdrs] || 0;
+      const precioActual = precios.cdrs[ticker] || 0;
       const compras = transactions.filter(t => t.tipo === 'compra' && t.ticker === ticker);
       const precioCompraPromedio = calcularPromedioPonderado(compras, 'compra');
       gananciaNoRealizada += cantidad * (precioActual - precioCompraPromedio);
@@ -83,12 +65,11 @@ export function calcularGananciaCDRs(transactions: CDRTransaction[]): {
   };
 }
 
-export function calcularGananciaAcciones(transactions: AccionTransaction[]): {
+export function calcularGananciaAcciones(transactions: AccionTransaction[], precios: Precios): {
   realizada: number;
   noRealizada: number;
   total: number;
 } {
-  const precios = getCurrentPrices();
   const tenencias = calcularTenenciaActual(transactions);
   
   const ventas = transactions.filter(t => t.tipo === 'venta');
@@ -103,7 +84,7 @@ export function calcularGananciaAcciones(transactions: AccionTransaction[]): {
   let gananciaNoRealizada = 0;
   tenencias.forEach((cantidad, ticker) => {
     if (cantidad > 0) {
-      const precioActual = precios.acciones[ticker as keyof typeof precios.acciones] || 0;
+      const precioActual = precios.acciones[ticker] || 0;
       const compras = transactions.filter(t => t.tipo === 'compra' && t.ticker === ticker);
       const precioCompraPromedio = calcularPromedioPonderado(compras, 'compra');
       gananciaNoRealizada += cantidad * (precioActual - precioCompraPromedio);
