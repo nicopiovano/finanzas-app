@@ -1,11 +1,13 @@
-import { RouterProvider } from 'react-router';
-import { FinanceProvider } from './context/FinanceContext';
-import { router } from './routes';
+import { RouterProvider } from "react-router";
+import { ThemeProvider } from "./hooks/useTheme";
+import { router } from "./routes";
 
-export default function App() {
+function App() {
   return (
-    <FinanceProvider>
+    <ThemeProvider>
       <RouterProvider router={router} />
-    </FinanceProvider>
+    </ThemeProvider>
   );
 }
+
+export default App;

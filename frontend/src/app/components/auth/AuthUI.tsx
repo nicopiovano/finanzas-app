@@ -1,6 +1,6 @@
-import React from 'react'
+import type { InputHTMLAttributes, LabelHTMLAttributes, ButtonHTMLAttributes, HTMLAttributes } from 'react'
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   invalid?: boolean
 }
 
@@ -21,7 +21,7 @@ export function AuthInput({ invalid, className, ...props }: InputProps) {
   )
 }
 
-export function AuthLabel(props: React.LabelHTMLAttributes<HTMLLabelElement>) {
+export function AuthLabel(props: LabelHTMLAttributes<HTMLLabelElement>) {
   return (
     <label
       {...props}
@@ -30,7 +30,7 @@ export function AuthLabel(props: React.LabelHTMLAttributes<HTMLLabelElement>) {
   )
 }
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'ghost'
 }
 
@@ -47,7 +47,7 @@ export function AuthButton({ variant = 'primary', className, ...props }: ButtonP
   )
 }
 
-export function AuthCard(props: React.HTMLAttributes<HTMLDivElement>) {
+export function AuthCard(props: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       {...props}

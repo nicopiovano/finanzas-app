@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link, useLocation } from 'react-router';
 import { 
   LayoutDashboard, 
@@ -6,6 +5,7 @@ import {
   BarChart3, 
   DollarSign, 
   Wallet,
+  Settings,
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
@@ -17,9 +17,11 @@ interface SidebarProps {
 
 const menuItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/cedears-acciones', label: 'Cedears y Acciones', icon: TrendingUp },
   { path: '/dolar', label: 'Dólar', icon: DollarSign },
+  { path: '/inversiones', label: 'Inversiones', icon: TrendingUp },
   { path: '/ingresos', label: 'Ingresos', icon: Wallet },
+  { path: '/gastos', label: 'Gastos', icon: BarChart3 },
+  { path: '/configuracion', label: 'Configuración', icon: Settings },
 ];
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
