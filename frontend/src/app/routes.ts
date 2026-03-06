@@ -1,6 +1,7 @@
 import { createBrowserRouter } from "react-router";
 import { AuthBootstrap } from "./components/auth/AuthBootstrap";
 import { GuestOnly } from "./components/auth/GuestOnly";
+import { AdminOnly } from "./components/auth/AdminOnly";
 import { ProtectedLayout } from "./components/auth/ProtectedRoute";
 import { LoginPage } from "./pages/auth/LoginPage";
 import { RegisterPage } from "./pages/auth/RegisterPage";
@@ -48,7 +49,13 @@ export const router = createBrowserRouter([
           },
           {
             path: "configuracion",
-            Component: Configuracion,
+            Component: AdminOnly,
+            children: [
+              {
+                index: true,
+                Component: Configuracion,
+              },
+            ],
           },
         ],
       },

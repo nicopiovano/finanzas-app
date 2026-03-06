@@ -9,23 +9,26 @@ import {
   ChevronLeft,
   ChevronRight
 } from 'lucide-react';
+import { useAuthStore, ADMIN_ROLE } from '../stores/auth';
 
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
 }
 
-const menuItems = [
+const menuItems: { path: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean }[] = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/dolar', label: 'Dólar', icon: DollarSign },
   { path: '/inversiones', label: 'Inversiones', icon: TrendingUp },
   { path: '/ingresos', label: 'Ingresos', icon: Wallet },
   { path: '/gastos', label: 'Gastos', icon: BarChart3 },
-  { path: '/configuracion', label: 'Configuración', icon: Settings },
+  { path: '/configuracion', label: 'Configuración', icon: Settings, adminOnly: true },
 ];
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation();
+  const isAdmin = useAuthStore((s) => s.user?.role === ADMIN_ROLE);
+  const visibleItems = menuItems.filter((item) => !item.adminOnly || isAdmin);
 
   return (
     <aside 
@@ -54,7 +57,7 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
 
       {/* Navigation */}
       <nav className="flex-1 py-4 px-2">
-        {menuItems.map((item) => {
+        {visibleItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path || 
             (item.path !== '/' && location.pathname.startsWith(item.path));

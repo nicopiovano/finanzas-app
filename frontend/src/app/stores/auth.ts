@@ -1,15 +1,24 @@
 import { create } from 'zustand'
 import { api, csrf } from '../lib/api'
-import { AUTH_ENABLED } from '../config'
+import { AUTH_ENABLED, FORCE_ADMIN } from '../config'
 import { AxiosError } from 'axios'
+
+/** Role que debe devolver el backend para usuarios administradores. Por ahora no hay admins. */
+export const ADMIN_ROLE = 'admin' as const
 
 export interface User {
   id: number
   name: string
   email: string
+  /** Rol del usuario. Cuando el backend lo soporte, usar para restringir Configuración a admins. */
+  role?: string
 }
 
 const GUEST_USER: User = { id: 0, name: 'Invitado', email: 'invitado@local' }
+
+function withAdminIfForced(user: User): User {
+  return FORCE_ADMIN ? { ...user, role: ADMIN_ROLE } : user
+}
 
 interface AuthState {
   user: User | null
@@ -73,12 +82,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   bootstrap: async () => {
     set({ bootstrapping: true })
     if (!AUTH_ENABLED) {
-      set({ user: GUEST_USER, bootstrapping: false })
+      set({ user: withAdminIfForced(GUEST_USER), bootstrapping: false })
       return
     }
     try {
       const user = await api.get('/api/user').then((r) => r.data)
-      set({ user, error: null })
+      set({ user: withAdminIfForced(user), error: null })
     } catch {
       set({ user: null })
     } finally {
@@ -92,8 +101,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       await csrf()
       await api.post('/api/login', { email, password })
       const user = await api.get('/api/user').then((r) => r.data)
-      set({ user })
-      return user
+      set({ user: withAdminIfForced(user) })
+      return withAdminIfForced(user)
     } catch (err) {
       set({ error: errorMessage(err) })
       throw err
@@ -108,8 +117,8 @@ export const useAuthStore = create<AuthState>((set) => ({
       await csrf()
       await api.post('/api/register', { name, email, password, password_confirmation })
       const user = await api.get('/api/user').then((r) => r.data)
-      set({ user })
-      return user
+      set({ user: withAdminIfForced(user) })
+      return withAdminIfForced(user)
     } catch (err) {
       set({ error: errorMessage(err) })
       throw err
