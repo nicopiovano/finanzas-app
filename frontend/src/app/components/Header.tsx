@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router';
 import { useTheme } from '../hooks/useTheme';
 import { useAuthStore } from '../stores/auth';
+import { AUTH_ENABLED } from '../config';
 import { Moon, Sun, LogOut, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -47,14 +48,16 @@ export function Header() {
             {user?.name ?? ''}
           </span>
         </div>
-        <button
-          onClick={handleLogout}
-          disabled={authLoading}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-60"
-        >
-          <LogOut className="w-4 h-4" />
-          <span className="hidden md:inline">{authLoading ? 'Saliendo…' : 'Salir'}</span>
-        </button>
+        {AUTH_ENABLED && (
+          <button
+            onClick={handleLogout}
+            disabled={authLoading}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors disabled:opacity-60"
+          >
+            <LogOut className="w-4 h-4" />
+            <span className="hidden md:inline">{authLoading ? 'Saliendo…' : 'Salir'}</span>
+          </button>
+        )}
       </div>
     </header>
   );

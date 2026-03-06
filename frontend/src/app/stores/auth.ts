@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { api, csrf } from '../lib/api'
+import { AUTH_ENABLED } from '../config'
 import { AxiosError } from 'axios'
 
 export interface User {
@@ -7,6 +8,8 @@ export interface User {
   name: string
   email: string
 }
+
+const GUEST_USER: User = { id: 0, name: 'Invitado', email: 'invitado@local' }
 
 interface AuthState {
   user: User | null
@@ -69,6 +72,10 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   bootstrap: async () => {
     set({ bootstrapping: true })
+    if (!AUTH_ENABLED) {
+      set({ user: GUEST_USER, bootstrapping: false })
+      return
+    }
     try {
       const user = await api.get('/api/user').then((r) => r.data)
       set({ user, error: null })
@@ -112,6 +119,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
+    if (!AUTH_ENABLED) {
+      set({ user: GUEST_USER, loading: false })
+      return
+    }
     set({ loading: true, error: null })
     try {
       await csrf()
