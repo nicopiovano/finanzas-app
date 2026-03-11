@@ -1,6 +1,4 @@
-node_modules/
-vendor/
-.env
-dist/
-build/
-.cache/
+# Solo se trackean backend y frontend como submodules.
+# Si aún no están como submodules, se ignoran para no subir su contenido aquí.
+/backend/
+/frontend/
