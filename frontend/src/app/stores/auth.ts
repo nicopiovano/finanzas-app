@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { api, csrf } from '../lib/api'
-import { AUTH_ENABLED, FORCE_ADMIN } from '../config'
+import { AUTH_ENABLED, FORCE_ADMIN, getIsDemoMode } from '../config'
 import { AxiosError } from 'axios'
 
 /** Role que debe devolver el backend para usuarios administradores. Por ahora no hay admins. */
@@ -81,7 +81,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   bootstrap: async () => {
     set({ bootstrapping: true })
-    if (!AUTH_ENABLED) {
+    if (!AUTH_ENABLED || getIsDemoMode()) {
       set({ user: withAdminIfForced(GUEST_USER), bootstrapping: false })
       return
     }
@@ -128,7 +128,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: async () => {
-    if (!AUTH_ENABLED) {
+    if (!AUTH_ENABLED || getIsDemoMode()) {
       set({ user: GUEST_USER, loading: false })
       return
     }

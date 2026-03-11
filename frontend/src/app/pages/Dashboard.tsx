@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { KPICard } from '../components/dashboard/KPICard';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
+import { getIsDemoMode } from '../config';
 import { 
   Wallet, 
   TrendingUp, 
@@ -13,7 +14,7 @@ import {
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { api, Asset } from '../services/api';
 
-// Mock data para gráficos
+// Mock data para gr?ficos
 const patrimonioEvolucion = [
   { mes: 'Oct', valor: 28000 },
   { mes: 'Nov', valor: 29500 },
@@ -46,13 +47,13 @@ export function Dashboard() {
     return <div>Cargando...</div>;
   }
 
-  // Preparar datos para el gráfico de distribución
+  // Preparar datos para el gr?fico de distribuci?n
   const distribucionData = [
     { name: 'CEDEARs', value: assets.filter(a => a.tipo === 'CEDEAR').reduce((sum, a) => sum + a.valorActual, 0) },
     { name: 'Acciones', value: assets.filter(a => a.tipo === 'Accion').reduce((sum, a) => sum + a.valorActual, 0) },
     { name: 'Bonos', value: assets.filter(a => a.tipo === 'Bono').reduce((sum, a) => sum + a.valorActual, 0) },
     { name: 'Cripto', value: assets.filter(a => a.tipo === 'Cripto').reduce((sum, a) => sum + a.valorActual, 0) },
-    { name: 'Dólar', value: 10000 },
+    { name: 'D?lar', value: 10000 },
     { name: 'Efectivo', value: 5000 },
   ].filter(item => item.value > 0);
 
@@ -67,6 +68,11 @@ export function Dashboard() {
 
   return (
     <div className="space-y-8">
+      {getIsDemoMode() && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-200">
+          Modo demo: no es necesario iniciar sesi?n. Pod?s explorar el dashboard con datos de ejemplo.
+        </div>
+      )}
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <KPICard
@@ -78,7 +84,7 @@ export function Dashboard() {
           trend={stats.variacionDiariaPorcentaje > 0 ? 'up' : 'down'}
         />
         <KPICard
-          title="Ganancia/Pérdida Total"
+          title="Ganancia/P?rdida Total"
           value={formatCurrency(stats.gananciaTotal)}
           change={stats.gananciaPorcentaje}
           icon={<TrendingUp className="w-5 h-5 text-[var(--success)]" />}
@@ -101,7 +107,7 @@ export function Dashboard() {
           trend={stats.flujoDeCaja > 0 ? 'up' : 'down'}
         />
         <KPICard
-          title="Variación Diaria"
+          title="Variaci?n Diaria"
           value={formatCurrency(stats.variacionDiaria)}
           change={stats.variacionDiariaPorcentaje}
           icon={<DollarSign className="w-5 h-5 text-[var(--success)]" />}
@@ -109,12 +115,12 @@ export function Dashboard() {
         />
       </div>
 
-      {/* Gráficos */}
+      {/* Gr?ficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Evolución del Patrimonio */}
+        {/* Evoluci?n del Patrimonio */}
         <Card>
           <CardHeader>
-            <CardTitle>Evolución del Patrimonio</CardTitle>
+            <CardTitle>Evoluci?n del Patrimonio</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -142,10 +148,10 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Distribución de Activos */}
+        {/* Distribuci?n de Activos */}
         <Card>
           <CardHeader>
-            <CardTitle>Distribución de Activos</CardTitle>
+            <CardTitle>Distribuci?n de Activos</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -171,10 +177,10 @@ export function Dashboard() {
         </Card>
       </div>
 
-      {/* Tabla de Exposición por Activo */}
+      {/* Tabla de Exposici?n por Activo */}
       <Card>
         <CardHeader>
-          <CardTitle>Exposición por Activo</CardTitle>
+          <CardTitle>Exposici?n por Activo</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
