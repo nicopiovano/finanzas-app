@@ -1,37 +1,120 @@
-# Finanzas App
+# Finanzas App — Frontend
 
-Proyecto con **backend** y **frontend** como repositorios Git independientes (submódulos).
+Aplicación de finanzas personales: dashboard, dólar, inversiones, ingresos y gastos. Desarrollada con **React 18 + Vite**.
 
-- **Frontend:** [nicopiovano/finanzas-app](https://github.com/nicopiovano/finanzas-app) (React + Vite)
-- **Backend:** [nicopiovano/finanzas-app-api](https://github.com/nicopiovano/finanzas-app-api) (Laravel)
+- **Backend API:** [finanzas-app-api](https://github.com/nicopiovano/finanzas-app-api) (Laravel)
 
-## Estructura
+---
 
-```
-finanzas-app/
-├── backend/   → submódulo → finanzas-app-api (Laravel)
-├── frontend/  → submódulo → finanzas-app (Vue/React)
-└── README.md
-```
+## Stack
 
-## Primera vez: enlazar backend y frontend como submódulos
+| Tecnología        | Uso                    |
+|-------------------|------------------------|
+| React 18          | UI                     |
+| Vite 6            | Build y dev server     |
+| Tailwind CSS 4    | Estilos                |
+| React Router 7    | Rutas                  |
+| Zustand           | Estado global (auth)   |
+| Axios             | Cliente HTTP al API    |
+| Radix UI / shadcn | Componentes UI         |
+| Recharts          | Gráficos               |
+| MUI (icons)       | Iconos                 |
 
-Si ya tienes las carpetas `backend/` y `frontend/` con su código y su propio `git`, y los repos en GitHub existen:
+---
 
-1. **Ejecuta el script** (sube cada uno a su repo y los enlaza como submódulos):
-   ```bash
-   ./setup-submodules.sh
-   ```
-   Si prefieres hacerlo a mano, sube cada uno y luego añade los submódulos como en el script.
+## Requisitos
 
-## Clonar el proyecto
+- **Node.js** 18+ (recomendado 20+)
+- **npm** o pnpm
+- Backend Laravel en marcha (p. ej. `http://localhost:8002`, ver `VITE_API_URL`)
+
+---
+
+## Desarrollo
 
 ```bash
-git clone --recurse-submodules git@github.com:nicopiovano/finanzas-app.git
-# o, si ya clonaste sin submódulos:
-git submodule update --init --recursive
+# Instalar dependencias
+npm install
+
+# Servidor de desarrollo (puerto 5172)
+npm run dev
 ```
 
-## Trabajar con backend o frontend
+Abre **http://localhost:5172**.
 
-Cada carpeta es un repo aparte: haz `git status`, `commit`, `push` dentro de `backend/` o `frontend/` como siempre.
+---
+
+## Build
+
+```bash
+npm run build
+```
+
+Salida en `dist/`.
+
+---
+
+## Estructura del proyecto
+
+```
+frontend/
+├── public/              # Assets estáticos (favicon, etc.)
+├── src/
+│   ├── app/
+│   │   ├── components/   # Componentes reutilizables
+│   │   │   ├── figma/    # Componentes ligados a Figma (si aplica)
+│   │   │   ├── auth/     # Login, registro, rutas protegidas
+│   │   │   ├── dashboard/
+│   │   │   ├── layout/
+│   │   │   └── ui/       # Card, Button, Modal, etc.
+│   │   ├── context/      # React Context (si se usa)
+│   │   ├── hooks/        # useTheme, etc.
+│   │   ├── lib/          # Cliente API (axios)
+│   │   ├── pages/        # Vistas por ruta
+│   │   │   ├── auth/     # Login, Register
+│   │   │   └── ingresos/
+│   │   ├── services/     # Llamadas al API
+│   │   ├── stores/       # Zustand (auth)
+│   │   ├── utils/        # Helpers (cn, etc.)
+│   │   ├── config.ts     # AUTH_ENABLED, demo, etc.
+│   │   ├── routes.ts     # Definición de rutas
+│   │   └── App.tsx
+│   ├── styles/           # CSS global (Tailwind, temas)
+│   ├── types/            # Tipos TypeScript compartidos
+│   └── main.tsx
+├── index.html
+├── vite.config.ts
+└── package.json
+```
+
+---
+
+## Variables de entorno
+
+| Variable         | Descripción                    | Por defecto           |
+|------------------|--------------------------------|------------------------|
+| `VITE_API_URL`   | URL base del backend Laravel  | `http://localhost:8002` |
+| `VITE_DEMO_MODE` | Modo demo (sin login)         | —                      |
+
+---
+
+## Rutas
+
+| Ruta            | Descripción     |
+|-----------------|-----------------|
+| `/`             | Dashboard       |
+| `/login`        | Inicio de sesión |
+| `/register`     | Registro       |
+| `/dolar`        | Dólar          |
+| `/inversiones`  | Inversiones    |
+| `/ingresos`     | Ingresos       |
+| `/gastos`       | Gastos         |
+| `/configuracion`| Configuración (admin) |
+
+---
+
+## Configuración local
+
+- **Auth:** `src/app/config.ts` — `AUTH_ENABLED`, `FORCE_ADMIN`, y modo demo (`?demo` en la URL).
+- **API:** `src/app/lib/api.ts` — `API_BASE_URL` (o `VITE_API_URL`).
+- Alias `@` en Vite apunta a `src/` (imports tipo `@/app/...`).
