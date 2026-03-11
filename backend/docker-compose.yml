@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: finanzas_db
+    environment:
+      POSTGRES_DB: finanzas_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - finanzas_pg_data:/var/lib/postgresql/data
+
+  backend:
+    container_name: finanzas_backend
+    build: .
+    working_dir: /app
+    ports:
+      - "8002:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - postgres
+    environment:
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_DATABASE: finanzas_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+
+      SANCTUM_STATEFUL_DOMAINS: "localhost,localhost:5172,localhost:5173,localhost:5176,127.0.0.1,127.0.0.1:5172,127.0.0.1:5173,127.0.0.1:5176"
+      CORS_ALLOWED_ORIGINS: "http://localhost:5172,http://localhost:5173,http://localhost:5176,http://127.0.0.1:5172,http://127.0.0.1:5173"
+      SESSION_DOMAIN: "localhost"
+      SESSION_SECURE_COOKIE: "false"
+
+    command: >
+      sh -lc "php -r '
+        for ($$i=0; $$i<60; $$i++) {
+          try {
+            new PDO(
+              \"pgsql:host=\".getenv(\"DB_HOST\").\";port=\".getenv(\"DB_PORT\").\";dbname=\".getenv(\"DB_DATABASE\"),
+              getenv(\"DB_USERNAME\"),
+              getenv(\"DB_PASSWORD\")
+            );
+            exit(0);
+          } catch (Throwable $$ex) { sleep(1); }
+        }
+        exit(1);
+      ' &&
+      (test -f .env || cp .env.example .env) &&
+      php artisan key:generate --force &&
+      php artisan migrate --force &&
+      php artisan db:seed --force &&
+      php artisan serve --no-reload --host=0.0.0.0 --port=8000"
+
+volumes:
+  finanzas_pg_data:
