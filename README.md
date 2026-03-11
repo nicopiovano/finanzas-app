@@ -11,29 +11,17 @@ finanzas-app/
 └── README.md
 ```
 
-## Primera vez: crear los repos y enlazarlos
+## Primera vez: crear los repos y enlazarlos como submódulos
 
 1. **Crea dos repos vacíos en GitHub** (misma cuenta que este repo):
    - `finanzas-app-backend`
    - `finanzas-app-frontend`
 
-2. **Sube el código de cada carpeta a su repo:**
+2. **Ejecuta el script** (sube backend y frontend a sus repos y los enlaza como submódulos):
    ```bash
-   cd backend && git push -u origin main && cd ..
-   cd frontend && git push -u origin main && cd ..
+   ./setup-submodules.sh
    ```
-
-3. **Convierte las carpetas en submódulos** (solo una vez):
-   ```bash
-   rm -rf backend frontend
-   git submodule add git@github.com:nicopiovano/finanzas-app-backend.git backend
-   git submodule add git@github.com:nicopiovano/finanzas-app-frontend.git frontend
-   git add .gitmodules backend frontend
-   git commit -m "chore: add backend and frontend as submodules"
-   git push origin main
-   ```
-
-4. Quita `backend/` y `frontend/` del `.gitignore` del repo raíz (ya no se ignoran, son submódulos).
+   Si prefieres hacerlo a mano, sube cada uno y luego añade los submódulos como en el script.
 
 ## Clonar el proyecto
 
