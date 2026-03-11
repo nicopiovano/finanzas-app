@@ -2,22 +2,23 @@
 
 Proyecto con **backend** y **frontend** como repositorios Git independientes (submódulos).
 
+- **Frontend:** [nicopiovano/finanzas-app](https://github.com/nicopiovano/finanzas-app) (React + Vite)
+- **Backend:** [nicopiovano/finanzas-app-api](https://github.com/nicopiovano/finanzas-app-api) (Laravel)
+
 ## Estructura
 
 ```
 finanzas-app/
-├── backend/   → apunta a su propio repo (Laravel)
-├── frontend/  → apunta a su propio repo (Vue/React)
+├── backend/   → submódulo → finanzas-app-api (Laravel)
+├── frontend/  → submódulo → finanzas-app (Vue/React)
 └── README.md
 ```
 
-## Primera vez: crear los repos y enlazarlos como submódulos
+## Primera vez: enlazar backend y frontend como submódulos
 
-1. **Crea dos repos vacíos en GitHub** (misma cuenta que este repo):
-   - `finanzas-app-backend`
-   - `finanzas-app-frontend`
+Si ya tienes las carpetas `backend/` y `frontend/` con su código y su propio `git`, y los repos en GitHub existen:
 
-2. **Ejecuta el script** (sube backend y frontend a sus repos y los enlaza como submódulos):
+1. **Ejecuta el script** (sube cada uno a su repo y los enlaza como submódulos):
    ```bash
    ./setup-submodules.sh
    ```

@@ -1,13 +1,12 @@
 #!/bin/bash
-# Ejecutar desde la raíz de finanzas-app, después de crear en GitHub:
-#   - finanzas-app-backend
-#   - finanzas-app-frontend
+# Ejecutar desde la raíz del repo que contendrá backend/ y frontend/ como submódulos.
+# Repos en GitHub: finanzas-app (frontend), finanzas-app-api (backend).
 
 set -e
 cd "$(dirname "$0")"
 
-BACKEND_URL="git@github.com:nicopiovano/finanzas-app-backend.git"
-FRONTEND_URL="git@github.com:nicopiovano/finanzas-app-frontend.git"
+BACKEND_URL="git@github.com:nicopiovano/finanzas-app-api.git"
+FRONTEND_URL="git@github.com:nicopiovano/finanzas-app.git"
 
 echo "1. Subiendo backend a su repo..."
 (cd backend && git push -u origin main)
